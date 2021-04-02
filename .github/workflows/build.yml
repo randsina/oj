@@ -1,0 +1,39 @@
+name: Build
+
+env:
+  MAKE: 'make -j 2'
+
+on:
+  push:
+    branches: [ $default-branch ]
+  pull_request:
+    branches: [ $default-branch ]
+    
+jobs:
+  test:
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ ubuntu, macos ]
+        ruby-version: [ 2.4, 2.5, 2.6, 2.7, '3.0' ]
+        gemfile: [ no_rails, rails_5, rails_6, rails_6.1 ]
+        exclude:
+          - os: macos
+            ruby-version: 2.4
+          # Rails 6 only support Ruby 2.5 and above.
+          - gemfile: rails_6
+            ruby-version: 2.4
+          - gemfile: rails_6.1
+            ruby-version: 2.4
+    runs-on: ${{ matrix.os }}-latest
+    continue-on-error: ${{ startsWith(matrix.ruby-version, '3.0') }}
+    env:
+      BUNDLE_GEMFILE: gemfiles/${{ matrix.gemfile }}.gemfile
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby-version }}
+        bundler-cache: true       
+    - name: Run tests
+      run: bundle exec rake
