@@ -393,12 +393,7 @@ class ScpTest < Minitest::Test
 
   def test_socket_close
     json = %{{"one":true,"two":false}}
-    begin
-      server = TCPServer.new(8080)
-    rescue
-      # Not able to open a socket to run the test. Might be Travis.
-      return
-    end
+    server = TCPServer.new(8080)
     Thread.start(json) do |j|
       c = server.accept()
       c.puts json[0..11]
@@ -411,12 +406,7 @@ class ScpTest < Minitest::Test
         c.close
       end
     end
-    begin
-      sock = TCPSocket.new('localhost', 8080)
-    rescue
-      # Not able to open a socket to run the test. Might be Travis.
-      return
-    end
+    sock = TCPSocket.new('localhost', 8080)
     handler = Closer.new(sock)
     err = nil
     begin
